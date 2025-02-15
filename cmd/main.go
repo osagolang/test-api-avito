@@ -29,19 +29,14 @@ func main() {
 	fmt.Println("Успешное подключение к БД")
 
 	userRepo := repositories.NewUserRepo(db)
-	walletRepo := repositories.NewWalletRepo(db)
 
-	authService := services.NewAuthService(userRepo, walletRepo)
+	authService := services.NewAuthService(userRepo)
 
 	authHandler := handlers.NewAuthHandler(authService)
 
 	router := gin.Default()
 
-	authGroup := router.Group("/api")
-	{
-		authGroup.POST("/register", authHandler.Register)
-		authGroup.POST("/login", authHandler.Login)
-	}
+	router.POST("/api/login", authHandler.Login)
 
 	fmt.Println("Сервер: http://localhost:8080")
 	if err := http.ListenAndServe(":8080", router); err != nil {
