@@ -1,0 +1,9 @@
+services:
+  database:
+    image: postgres:17-alpine3.20
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=db-avito
+      - POSTGRES_USER=dev
+      - POSTGRES_PASSWORD=dev
