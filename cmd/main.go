@@ -4,8 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
-
 	"test-api-avito/internal/handlers"
 	"test-api-avito/internal/repositories"
 	"test-api-avito/internal/services"
@@ -16,10 +14,10 @@ import (
 
 func main() {
 	db, err := sql.Open("postgres", "dbname=db-avito user=dev password=dev sslmode=disable")
+	defer db.Close()
 	if err != nil {
 		log.Fatalf("Ошибка подключения к БД: %v", err)
 	}
-	defer db.Close()
 
 	err = db.Ping()
 	if err != nil {
@@ -39,7 +37,7 @@ func main() {
 	router.POST("/api/login", authHandler.Login)
 
 	fmt.Println("Сервер: http://localhost:8080")
-	if err := http.ListenAndServe(":8080", router); err != nil {
-		log.Fatal("Ошибка запуска сервера: %v", err)
+	if err := router.Run(); err != nil {
+		log.Fatalf("Ошибка запуска сервера: %v", err)
 	}
 }

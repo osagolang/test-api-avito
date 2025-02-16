@@ -2,6 +2,7 @@ package services
 
 import (
 	"database/sql"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"test-api-avito/internal/models"
 	"test-api-avito/internal/repositories"
@@ -27,10 +28,10 @@ func (s *AuthService) Login(username, password string) (*models.User, string, er
 	if err != nil {
 
 		// Если не найден, регистрируем
-		if err == sql.ErrNoRows {
+		if errors.Is(err, sql.ErrNoRows) {
 
-			// Хэшируем пароль
-			hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			// Хэшируем пароль (уменьшил Cost до 4 для снижения времени ответа)
+			hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 			if err != nil {
 				return nil, "", err
 			}

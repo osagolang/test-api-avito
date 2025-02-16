@@ -1,0 +1,6 @@
+development:
+  dialect: postgres
+  datasource: dbname=db-avito user=dev password=dev sslmode=disable
+  dir: migrations
+  table: migrations
+
