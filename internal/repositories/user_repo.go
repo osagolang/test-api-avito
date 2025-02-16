@@ -51,3 +51,18 @@ func (r *UserRepo) FindUser(username string) (*models.User, error) {
 
 	return &user, nil
 }
+
+// UserCoins возвращает количество монет пользователя
+func (r *UserRepo) UserCoins(userID int) (int, error) {
+	var coins int
+
+	err := r.db.QueryRow(
+		"SELECT coins FROM users WHERE id = $1",
+		userID,
+	).Scan(&coins)
+
+	if err != nil {
+		return 0, err
+	}
+	return coins, nil
+}

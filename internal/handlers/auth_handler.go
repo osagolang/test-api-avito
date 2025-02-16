@@ -35,9 +35,8 @@ func (h *AuthHandler) Auth(c *gin.Context) {
 		return
 	}
 
-	// Ищем пользователя и авторизуем
+	// Если пользователь не найден, регистрируем
 	if user == nil {
-		// Регистрируем, если не найден
 		user, err = h.authService.Register(req.Username, req.Password)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"errors": "Внутренняя ошибка сервера."})

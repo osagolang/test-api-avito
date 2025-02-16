@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"test-api-avito/internal/handlers"
+	"test-api-avito/internal/middleware"
 	"test-api-avito/internal/repositories"
 	"test-api-avito/internal/services"
 
@@ -24,11 +25,14 @@ func main() {
 
 	userRepo := repositories.NewUserRepo(db)
 	authService := services.NewAuthService(userRepo)
+	infoService := services.NewInfoService(userRepo)
 	authHandler := handlers.NewAuthHandler(authService, userRepo)
+	infoHandler := handlers.NewInfoHandler(infoService)
 
 	router := gin.Default()
 
 	router.POST("/api/auth", authHandler.Auth)
+	router.GET("/api/info", middleware.AuthMiddleware(), infoHandler.GetUserInfo)
 
 	fmt.Println("Сервер: http://localhost:8080")
 	if err := router.Run(); err != nil {
