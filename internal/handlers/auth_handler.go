@@ -3,16 +3,17 @@ package handlers
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"test-api-avito/internal/repositories"
 	"test-api-avito/internal/services"
-	"test-api-avito/internal/utils"
 )
 
 type AuthHandler struct {
 	authService *services.AuthService
+	userRepo    *repositories.UserRepo
 }
 
-func NewAuthHandler(authService *services.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService *services.AuthService, userRepo *repositories.UserRepo) *AuthHandler {
+	return &AuthHandler{authService: authService, userRepo: userRepo}
 }
 
 // Auth обрабатывает запрос авторизации/регистрации пользователя
@@ -27,21 +28,31 @@ func (h *AuthHandler) Auth(c *gin.Context) {
 		return
 	}
 
-	// Пробуем авторизовать
-	user, err := h.authService.Login(req.Username, req.Password)
+	// Поиск существующего пользователя
+	user, err := h.userRepo.FindUser(req.Username)
 	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"errors": "Внутренняя ошибка сервера."})
+		return
+	}
+
+	// Ищем пользователя и авторизуем
+	if user == nil {
 		// Регистрируем, если не найден
 		user, err = h.authService.Register(req.Username, req.Password)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"errors": "Внутренняя ошибка сервера."})
 			return
 		}
+		if user == nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"errors": "Внутренняя ошибка сервера."})
+			return
+		}
 	}
 
-	// Генерируем токен
-	token, err := utils.GenerateToken(user.ID)
+	// todo тут лишняя проверка для нового пользователя
+	token, err := h.authService.Auth(user, req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"errors": "Внутренняя ошибка сервера."})
+		c.JSON(http.StatusUnauthorized, gin.H{"errors": "Неавторизован."})
 		return
 	}
 

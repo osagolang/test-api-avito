@@ -4,6 +4,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"test-api-avito/internal/models"
 	"test-api-avito/internal/repositories"
+	"test-api-avito/internal/utils"
 )
 
 type AuthService struct {
@@ -32,20 +33,19 @@ func (s *AuthService) Register(username, password string) (*models.User, error) 
 	return user, nil
 }
 
-// Login - Аутентификация пользователя
-func (s *AuthService) Login(username, password string) (*models.User, error) {
-
-	// Поиск существующего пользователя
-	user, err := s.userRepo.FindUser(username)
-	if err != nil {
-		return nil, err
-	}
+// Auth - Аутентификация пользователя
+func (s *AuthService) Auth(user *models.User, password string) (string, error) {
 
 	// Проверяем пароль
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	return user, nil
+	// Генерируем токен
+	token, err := utils.GenerateToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
 }

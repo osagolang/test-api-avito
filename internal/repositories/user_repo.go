@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"test-api-avito/internal/models"
 )
 
@@ -20,9 +21,9 @@ func (r *UserRepo) CreateUser(username, password string) (*models.User, error) {
 
 	// Создание нового пользователя
 	err := r.db.QueryRow(
-		"INSERT INTO users (username, password, coins) VALUES ($1, $2, $3) RETURNING id, username, coins",
+		"INSERT INTO users (username, password, coins) VALUES ($1, $2, $3) RETURNING id, username, password, coins",
 		username, password, 1000,
-	).Scan(&user.ID, &user.Username, &user.Coins)
+	).Scan(&user.ID, &user.Username, &user.Password, &user.Coins)
 
 	if err != nil {
 		return nil, err
@@ -40,6 +41,9 @@ func (r *UserRepo) FindUser(username string) (*models.User, error) {
 		"SELECT id, username, password FROM users WHERE username = $1",
 		username,
 	).Scan(&user.ID, &user.Username, &user.Password)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
 
 	if err != nil {
 		return nil, err
