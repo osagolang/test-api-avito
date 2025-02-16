@@ -1,12 +1,9 @@
 package services
 
 import (
-	"database/sql"
-	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"test-api-avito/internal/models"
 	"test-api-avito/internal/repositories"
-	"test-api-avito/internal/utils"
 )
 
 type AuthService struct {
@@ -17,47 +14,38 @@ func NewAuthService(userRepo *repositories.UserRepo) *AuthService {
 	return &AuthService{userRepo: userRepo}
 }
 
-// Login - Авторизация/регистрация пользователя
-func (s *AuthService) Login(username, password string) (*models.User, string, error) {
+// Register - Регистрация нового пользователя
+func (s *AuthService) Register(username, password string) (*models.User, error) {
 
-	var user *models.User
-	var err error
+	// Хэшируем пароль (уменьшил Cost до 4 для снижения времени ответа)
+	hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	if err != nil {
+		return nil, err
+	}
+
+	// Создаем пользователя
+	user, err := s.userRepo.CreateUser(username, string(hashPassword))
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+// Login - Аутентификация пользователя
+func (s *AuthService) Login(username, password string) (*models.User, error) {
 
 	// Поиск существующего пользователя
-	user, err = s.userRepo.FindUser(username)
+	user, err := s.userRepo.FindUser(username)
 	if err != nil {
-
-		// Если не найден, регистрируем
-		if errors.Is(err, sql.ErrNoRows) {
-
-			// Хэшируем пароль (уменьшил Cost до 4 для снижения времени ответа)
-			hashPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
-			if err != nil {
-				return nil, "", err
-			}
-
-			// Создаем пользователя через userRepo (там же создаётся кошелёк при создании пользователя)
-			user, err = s.userRepo.CreateUser(username, string(hashPassword))
-			if err != nil {
-				return nil, "", err
-			}
-		} else {
-			return nil, "", err
-		}
-	} else {
-
-		// Если найден, проверяем пароль
-		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-		if err != nil {
-			return nil, "", err
-		}
+		return nil, err
 	}
 
-	// Генерируем токен
-	token, err := utils.GenerateToken(user.ID)
+	// Проверяем пароль
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
-		return nil, "", err
+		return nil, err
 	}
 
-	return user, token, nil
+	return user, nil
 }
