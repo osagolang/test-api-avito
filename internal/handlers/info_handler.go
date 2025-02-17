@@ -23,14 +23,12 @@ func (h *InfoHandler) GetUserInfo(c *gin.Context) {
 		return
 	}
 
-	// Получаем количество монет
-	coins, err := h.infoService.UserInfo(userID.(int))
+	// Получаем информацию /api/info
+	info, err := h.infoService.UserInfo(userID.(int))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"errors": "Внутренняя ошибка сервера."})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"coins": coins,
-	})
+	c.JSON(http.StatusOK, info)
 }

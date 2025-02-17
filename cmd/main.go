@@ -24,15 +24,22 @@ func main() {
 	fmt.Println("Успешное подключение к БД")
 
 	userRepo := repositories.NewUserRepo(db)
+	userInfoRepo := repositories.NewUserInfoRepo(db)
+	itemRepo := repositories.NewItemRepo(db)
+
 	authService := services.NewAuthService(userRepo)
-	infoService := services.NewInfoService(userRepo)
+	infoService := services.NewInfoService(userInfoRepo)
+	buyService := services.NewBuyService(userInfoRepo, itemRepo)
+
 	authHandler := handlers.NewAuthHandler(authService, userRepo)
 	infoHandler := handlers.NewInfoHandler(infoService)
+	buyHandler := handlers.NewBuyHandler(buyService)
 
 	router := gin.Default()
 
 	router.POST("/api/auth", authHandler.Auth)
 	router.GET("/api/info", middleware.AuthMiddleware(), infoHandler.GetUserInfo)
+	router.GET("api/buy/:item", middleware.AuthMiddleware(), buyHandler.BuyItem)
 
 	fmt.Println("Сервер: http://localhost:8080")
 	if err := router.Run(); err != nil {

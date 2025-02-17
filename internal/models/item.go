@@ -1,6 +1,6 @@
 package models
 
-type Shop struct {
+type Item struct {
 	ID    int    `json:"id"`
 	Type  string `json:"type"`
 	Price int    `json:"price"`
