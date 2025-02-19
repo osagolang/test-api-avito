@@ -16,7 +16,7 @@ func NewItemRepo(db *sql.DB) *ItemRepo {
 // Получить товар по названию
 func (r *ItemRepo) GetItem(name string) (*models.Item, error) {
 	var item models.Item
-	err := r.db.QueryRow("SELECT type, price FROM items WHERE name = $1", name).Scan(&item.Type, &item.Price)
+	err := r.db.QueryRow("SELECT type, price FROM items WHERE type = $1", name).Scan(&item.Type, &item.Price)
 	if err != nil {
 		return nil, err
 	}

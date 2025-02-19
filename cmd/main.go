@@ -26,20 +26,21 @@ func main() {
 	userRepo := repositories.NewUserRepo(db)
 	userInfoRepo := repositories.NewUserInfoRepo(db)
 	itemRepo := repositories.NewItemRepo(db)
+	buyRepo := repositories.NewBuyRepo(db, itemRepo)
 
 	authService := services.NewAuthService(userRepo)
 	infoService := services.NewInfoService(userInfoRepo)
-	buyService := services.NewBuyService(userInfoRepo, itemRepo)
 
 	authHandler := handlers.NewAuthHandler(authService, userRepo)
 	infoHandler := handlers.NewInfoHandler(infoService)
-	buyHandler := handlers.NewBuyHandler(buyService)
+	buyHandler := handlers.NewBuyHandler(buyRepo)
 
 	router := gin.Default()
 
 	router.POST("/api/auth", authHandler.Auth)
 	router.GET("/api/info", middleware.AuthMiddleware(), infoHandler.GetUserInfo)
-	router.GET("api/buy/:item", middleware.AuthMiddleware(), buyHandler.BuyItem)
+	router.GET("/api/buy/:item", middleware.AuthMiddleware(), buyHandler.BuyItem)
+	router.POST("/api/sendCoin", middleware.AuthMiddleware())
 
 	fmt.Println("Сервер: http://localhost:8080")
 	if err := router.Run(); err != nil {
