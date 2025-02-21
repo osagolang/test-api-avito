@@ -43,7 +43,21 @@ func (r *UserInfoRepo) UserInventory(userID int) ([]models.Inventory, error) {
 func (r *UserInfoRepo) UserTransactionHistory(userID int) (models.CoinHistory, error) {
 	var history models.CoinHistory
 
-	receivedRows, err := r.db.Query("SELECT from_user, amount FROM transactions WHERE to_user = $1", userID)
+	/*
+		receivedRows, err := r.db.Query(`
+			SELECT from_user, SUM(amount) AS total_amount
+			FROM transactions
+			WHERE to_user = $1
+			GROUP BY from_user`, userID)
+	*/
+
+	receivedRows, err := r.db.Query(`
+		SELECT users.username, SUM(transactions.amount) AS total_amount
+		FROM transactions
+		JOIN users ON transactions.from_user =  users.id
+		WHERE transactions.to_user = $1
+		GROUP BY users.username`, userID)
+
 	if err != nil {
 		return history, err
 	}
@@ -57,7 +71,21 @@ func (r *UserInfoRepo) UserTransactionHistory(userID int) (models.CoinHistory, e
 		history.Received = append(history.Received, tx)
 	}
 
-	sentRows, err := r.db.Query("SELECT to_user, amount FROM transactions WHERE from_user = $1", userID)
+	/*
+		sentRows, err := r.db.Query(`
+			SELECT to_user, SUM(amount) AS total_amount
+			FROM transactions
+			WHERE from_user = $1
+			GROUP BY to_user`, userID)
+	*/
+
+	sentRows, err := r.db.Query(`
+		SELECT users.username, SUM(transactions.amount) AS total_amount
+		FROM transactions
+		JOIN users ON transactions.to_user = users.id
+		WHERE transactions.from_user = $1
+		GROUP BY users.username`, userID)
+
 	if err != nil {
 		return history, err
 	}
