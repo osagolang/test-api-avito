@@ -9,7 +9,11 @@ type TransferCoinsRepo struct {
 	db *sql.DB
 }
 
-// Перевод монет (с транзакцией)
+func NewTransferRepo(db *sql.DB) *TransferCoinsRepo {
+	return &TransferCoinsRepo{db: db}
+}
+
+// Перевод монет с транзакцией
 func (r *TransferCoinsRepo) TransferCoins(fromUserID, toUserID, amount int) error {
 	tx, err := r.db.Begin()
 	if err != nil {

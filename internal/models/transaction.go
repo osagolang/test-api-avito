@@ -1,9 +1,9 @@
 package models
 
 type Transaction struct {
-	ID     int `json:"id"`
-	User   int `json:"user"`
-	Amount int `json:"amount"`
+	ID     int    `json:"-"`
+	User   string `json:"user"`
+	Amount int    `json:"amount"`
 }
 
 type CoinHistory struct {
