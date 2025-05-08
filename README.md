@@ -18,7 +18,7 @@
 - Docker + Docker Compose
 - JWT (github.com/golang-jwt/jwt/v5)
 - bcrypt (golang.org/x/crypto/bcrypt)
-- SQL-митации (github.com/rubenv/sql-migrate)
+- SQL-миграции (github.com/rubenv/sql-migrate)
 
 ---
 
